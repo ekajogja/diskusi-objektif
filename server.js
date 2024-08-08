@@ -25,23 +25,28 @@ app.post('/login', (req, res) => {
         body += chunk.toString();
     });
     req.on('end', () => {
-        const { username, password } = JSON.parse(body);
+        try {
+            const { username, password } = JSON.parse(body);
 
-        let userType = null;
-        if (users.Admin.username === username && users.Admin.password === password) {
-            userType = 'Admin';
-        } else if (users.Perumus.username === username && users.Perumus.password === password) {
-            userType = 'Perumus';
-        } else if (users.Mushahih.username === username && users.Mushahih.password === password) {
-            userType = 'Mushahih';
-        } else if (users.Diskusan.some(user => user.username === username && user.password === password)) {
-            userType = 'Diskusan';
-        }
+            let userType = null;
+            if (users.Admin.username === username && users.Admin.password === password) {
+                userType = 'Admin';
+            } else if (users.Perumus.username === username && users.Perumus.password === password) {
+                userType = 'Perumus';
+            } else if (users.Mushahih.username === username && users.Mushahih.password === password) {
+                userType = 'Mushahih';
+            } else if (users.Diskusan.some(user => user.username === username && user.password === password)) {
+                userType = 'Diskusan';
+            }
 
-        if (userType) {
-            res.status(200).json({ userType });
-        } else {
-            res.status(401).send('Invalid username or password');
+            if (userType) {
+                res.status(200).json({ userType });
+            } else {
+                res.status(401).send('Invalid username or password');
+            }
+        } catch (error) {
+            console.error('Error during login:', error);
+            res.status(500).send('Internal Server Error');
         }
     });
 });

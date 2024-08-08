@@ -1,5 +1,13 @@
 let isLoggedIn = false; // Flag to indicate if the user is logged in
 
+document.addEventListener('DOMContentLoaded', function() {
+    isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    const userType = localStorage.getItem('userType');
+    if (isLoggedIn && userType) {
+        showMenuBasedOnUser(userType);
+    }
+});
+
 document.getElementById('login-button').addEventListener('click', async function() {
     const username = prompt("Enter username:");
     const password = prompt("Enter password:");
@@ -14,7 +22,8 @@ document.getElementById('login-button').addEventListener('click', async function
 
     if (response.status === 200) {
         const { userType } = await response.json();
-        isLoggedIn = true; // Set the flag to true
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('userType', userType);
         showMenuBasedOnUser(userType);
     } else {
         alert("Invalid username or password");
@@ -23,24 +32,28 @@ document.getElementById('login-button').addEventListener('click', async function
 
 function showMenuBasedOnUser(userType) {
     const menu = document.getElementById('menu');
-    menu.innerHTML = '<a href="#" class="pure-button">Beranda</a>'; // Always show Beranda
+    menu.innerHTML = '<a href="index.html" class="pure-button"><i class="fas fa-home"></i> Beranda</a>'; // Always show Beranda
 
     const buttons = [
-        { text: 'Pandangan Awal', showFor: ['Admin', 'Diskusan'] },
-        { text: 'Sanggahan', showFor: ['Admin', 'Diskusan'] },
-        { text: 'Izin Sanggahan', showFor: ['Admin', 'Diskusan'] },
-        { text: 'Jawaban', showFor: ['Admin', 'Diskusan'] },
-        { text: 'Rumusan', showFor: ['Admin', 'Perumus'] },
-        { text: 'Tashih', showFor: ['Admin', 'Mushahih'] },
-        { text: 'Dasbor Admin', showFor: ['Admin'] }
+        { text: 'Pandangan Awal', showFor: ['Admin', 'Diskusan'], page: 'pandangan-awal.html' },
+        { text: 'Sanggahan', showFor: ['Admin', 'Diskusan'], page: 'sanggahan.html' },
+        { text: 'Izin Sanggahan', showFor: ['Admin', 'Diskusan'], page: 'izin-sanggahan.html' },
+        { text: 'Jawaban', showFor: ['Admin', 'Diskusan'], page: 'jawaban.html' },
+        { text: 'Rumusan', showFor: ['Admin', 'Perumus'], page: 'rumusan.html' },
+        { text: 'Tashih', showFor: ['Admin', 'Mushahih'], page: 'tashih.html' },
+        { text: 'Dasbor Admin', showFor: ['Admin'], page: 'dasbor-admin.html' }
     ];
 
     buttons.forEach(button => {
         if (button.showFor.includes(userType)) {
             const btn = document.createElement('a');
-            btn.href = '#';
+            btn.href = button.page;
             btn.className = 'pure-button';
-            btn.textContent = button.text;
+            btn.innerHTML = `<i class="fas fa-pen"></i> ${button.text}`; // Add pen icon
+            btn.addEventListener('click', function(event) {
+                event.preventDefault();
+                window.location.href = button.page;
+            });
             menu.appendChild(btn);
         }
     });
@@ -64,6 +77,8 @@ function showMenuBasedOnUser(userType) {
         button.id = 'logout-button';
         button.textContent = 'Logout';
         button.addEventListener('click', function() {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('userType');
             isLoggedIn = false; // Reset the flag
             window.location.reload(); // Refresh the page
         });
