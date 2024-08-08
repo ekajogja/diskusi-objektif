@@ -1,3 +1,6 @@
-## Rumusan
+Rumusan
+---
+Perumus: <p>1. Perumus Satu<br>2. Perumus Dua</p>
 
-Ini adalah rumusan dari Perumus.
+Penjelasan:
+<p>Ini adalah isi rumusan</p>

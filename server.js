@@ -25,28 +25,23 @@ app.post('/login', (req, res) => {
         body += chunk.toString();
     });
     req.on('end', () => {
-        try {
-            const { username, password } = JSON.parse(body);
+        const { username, password } = JSON.parse(body);
 
-            let userType = null;
-            if (users.Admin.username === username && users.Admin.password === password) {
-                userType = 'Admin';
-            } else if (users.Perumus.username === username && users.Perumus.password === password) {
-                userType = 'Perumus';
-            } else if (users.Mushahih.username === username && users.Mushahih.password === password) {
-                userType = 'Mushahih';
-            } else if (users.Diskusan.some(user => user.username === username && user.password === password)) {
-                userType = 'Diskusan';
-            }
+        let userType = null;
+        if (users.Admin.username === username && users.Admin.password === password) {
+            userType = 'Admin';
+        } else if (users.Perumus.username === username && users.Perumus.password === password) {
+            userType = 'Perumus';
+        } else if (users.Mushahih.username === username && users.Mushahih.password === password) {
+            userType = 'Mushahih';
+        } else if (users.Diskusan.some(user => user.username === username && user.password === password)) {
+            userType = 'Diskusan';
+        }
 
-            if (userType) {
-                res.status(200).json({ userType });
-            } else {
-                res.status(401).send('Invalid username or password');
-            }
-        } catch (error) {
-            console.error('Error during login:', error);
-            res.status(500).send('Internal Server Error');
+        if (userType) {
+            res.status(200).json({ userType });
+        } else {
+            res.status(401).send('Invalid username or password');
         }
     });
 });
@@ -88,6 +83,46 @@ app.get('/data/:folderName/:fileName', (req, res) => {
             return res.status(500).send('Unable to read file: ' + err);
         }
         res.send(data);
+    });
+});
+
+// Route to save Tashih content
+app.post('/save-tashih', (req, res) => {
+    let body = '';
+    req.on('data', chunk => {
+        body += chunk.toString();
+    });
+    req.on('end', () => {
+        const { content } = JSON.parse(body);
+        const filePath = path.join(__dirname, 'data', 'tashih', 'tashih.md');
+
+        fs.writeFile(filePath, content, 'utf8', err => {
+            if (err) {
+                console.error('Error saving Tashih:', err);
+                return res.status(500).send('Internal Server Error');
+            }
+            res.status(200).json({ message: 'Tashih saved successfully' });
+        });
+    });
+});
+
+// Route to save Rumusan content
+app.post('/save-rumusan', (req, res) => {
+    let body = '';
+    req.on('data', chunk => {
+        body += chunk.toString();
+    });
+    req.on('end', () => {
+        const { content } = JSON.parse(body);
+        const filePath = path.join(__dirname, 'data', 'rumusan', 'rumusan.md');
+
+        fs.writeFile(filePath, content, 'utf8', err => {
+            if (err) {
+                console.error('Error saving Rumusan:', err);
+                return res.status(500).send('Internal Server Error');
+            }
+            res.status(200).json({ message: 'Rumusan saved successfully' });
+        });
     });
 });
 

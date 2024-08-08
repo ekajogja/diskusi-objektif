@@ -7,19 +7,54 @@
     <link rel="stylesheet" href="pure-min.css">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/medium-editor/5.23.3/css/medium-editor.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.9.1/showdown.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/medium-editor/5.23.3/js/medium-editor.min.js"></script>
     <script src="scripts.js" defer></script>
 </head>
 <body>
     <div class="container">
         <h1>Tashih</h1>
         <div id="menu">
-            <a href="index.html" class="pure-button">Beranda</a>
+            <a href="index.html" class="pure-button"><i class="fas fa-home"></i> Beranda</a>
             <!-- Other menu items will be dynamically added by scripts.js -->
         </div>
         <div id="content">
-            <!-- Content specific to Pandangan Awal -->
+            <div class="split-content">
+                <div class="left-content">
+                    <h2>Rumusan</h2>
+                    <div id="rumusan-content"></div>
+                </div>
+                <div class="right-content">
+                    <div class="editor-section">
+                        <h2>Tashih</h2>
+                        <div id="tashih-editor" class="markdown-editor medium-editor"></div>
+                    </div>
+                    <div class="editor-section">
+                        <h2>Mushahih</h2>
+                        <div id="mushahih-editor" class="markdown-editor medium-editor"></div>
+                    </div>
+                    <button id="submit-tashih" class="pure-button">Simpan Tashih</button>
+                </div>
+            </div>
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tashihEditor = new MediumEditor('#tashih-editor', {
+                placeholder: {
+                    text: 'Start typing your Tashih here...',
+                    hideOnClick: true
+                }
+            });
+
+            const mushahihEditor = new MediumEditor('#mushahih-editor', {
+                placeholder: {
+                    text: 'Enter Mushahih here...',
+                    hideOnClick: true
+                }
+            });
+        });
+    </script>
 </body>
 </html>

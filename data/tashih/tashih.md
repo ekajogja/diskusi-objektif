@@ -1,3 +1,6 @@
-## Tashih
+Tashih
+---
+Mushahih: <p>1. Mushahih Satu<br>2. Mushahih Dua</p>
 
-Ini adalah tashih dari Mushahih.
+Penjelasan:
+<p>Ini adalah isi tashih.</p>
