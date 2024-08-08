@@ -49,28 +49,39 @@ app.post('/login', (req, res) => {
 app.get('/data/:folderName', (req, res) => {
     const folderName = req.params.folderName;
     const folderPath = path.join(__dirname, 'data', folderName);
-    console.log(`Scanning directory: ${folderPath}`);
-    fs.readdir(folderPath, (err, files) => {
+
+    fs.stat(folderPath, (err, stats) => {
         if (err) {
-            console.error(`Error scanning directory: ${err}`);
-            return res.status(500).send('Unable to scan directory: ' + err);
+            console.error(`Error stating directory: ${err}`);
+            return res.status(500).send('Unable to stat directory: ' + err);
         }
-        console.log(`Files found: ${files}`);
-        res.json(files.filter(file => file.endsWith('.md')));
+
+        if (!stats.isDirectory()) {
+            console.error(`Path is not a directory: ${folderPath}`);
+            return res.status(400).send('Not a directory');
+        }
+
+        fs.readdir(folderPath, (err, files) => {
+            if (err) {
+                console.error(`Error scanning directory: ${err}`);
+                return res.status(500).send('Unable to scan directory: ' + err);
+            }
+            console.log(`Files found: ${files}`);
+            res.json(files.filter(file => file.endsWith('.md')));
+        });
     });
 });
 
+// Route to serve individual markdown files
 app.get('/data/:folderName/:fileName', (req, res) => {
     const folderName = req.params.folderName;
     const fileName = req.params.fileName;
     const filePath = path.join(__dirname, 'data', folderName, fileName);
-    console.log(`Reading file: ${filePath}`);
+
     fs.readFile(filePath, 'utf8', (err, data) => {
         if (err) {
-            console.error(`Error reading file: ${err}`);
-            return res.status(500).send('Error reading file: ' + err);
+            return res.status(500).send('Unable to read file: ' + err);
         }
-        console.log(`File read successfully: ${fileName}`);
         res.send(data);
     });
 });

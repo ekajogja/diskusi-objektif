@@ -50,10 +50,18 @@ function showMenuBasedOnUser(userType) {
     menu.appendChild(loginButton);
 }
 
+
 document.querySelectorAll('#collapsible-menu .pure-menu-link').forEach(link => {
     link.addEventListener('click', function(event) {
         event.preventDefault();
         const folderName = this.getAttribute('data-file');
+        
+        // Check if the requested path is a directory
+        if (folderName && folderName.endsWith('.md')) {
+            console.error('Requested path is a file, not a directory');
+            return;
+        }
+        
         loadMarkdownFiles(folderName);
     });
 });
@@ -62,13 +70,8 @@ async function loadMarkdownFiles(folderName) {
     const contentDiv = document.getElementById('markdown-content');
     contentDiv.innerHTML = '';
 
-    let files = [];
-    if (folderName.endsWith('.md')) {
-        files.push(folderName);
-    } else {
-        const response = await fetch(`/data/${folderName}`);
-        files = await response.json();
-    }
+    const response = await fetch(`/data/${folderName}`);
+    const files = await response.json();
 
     for (const file of files) {
         const fileResponse = await fetch(`/data/${folderName}/${file}`);

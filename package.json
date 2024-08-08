@@ -1,12 +1,18 @@
 {
-    "name": "diskusi-objektif",
-    "version": "1.0.0",
-    "main": "server.js",
-    "dependencies": {
-      "express": "^4.17.1",
-      "showdown": "^1.9.1"
-    },
-    "scripts": {
-      "start": "node server.js"
-    }
+  "name": "diskusi-objektif",
+  "version": "1.0.0",
+  "description": "A web application for objective discussion",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "fs": "0.0.1-security",
+    "path": "^0.12.7",
+    "showdown": "^1.9.1"
+  },
+  "author": "ekajogja",
+  "license": "ISC"
 }
