@@ -8,7 +8,7 @@
 
 - [x] Rumusan flow
 
-- [ ] Paparan flow
+- [x] Paparan flow
 
 - [x] Pandangan Awal flow
 

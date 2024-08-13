@@ -1,3 +1,6 @@
-## Paparan Kasus
+Paparan
+---
+Narasumber: <p>Nama Narasumber</p>
 
-Ini adalah paparan kasus yang akan dianalisis oleh para pengguna.
+Penjelasan:
+<p>Ini adalah paparan kasus</p>
