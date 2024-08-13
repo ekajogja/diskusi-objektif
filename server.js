@@ -5,6 +5,8 @@ const showdown = require('showdown');
 const app = express();
 const port = 3000;
 
+app.use(express.json());
+
 // Serve static files from the "public" directory
 app.use(express.static('public'));
 app.use(express.static('data'));
@@ -20,30 +22,25 @@ const users = {
 };
 
 app.post('/login', (req, res) => {
-    let body = '';
-    req.on('data', chunk => {
-        body += chunk.toString();
-    });
-    req.on('end', () => {
-        const { username, password } = JSON.parse(body);
+    const { username, password } = req.body;
+    console.log(`Received login request for username: ${username}`);
 
-        let userType = null;
-        if (users.Admin.username === username && users.Admin.password === password) {
-            userType = 'Admin';
-        } else if (users.Perumus.username === username && users.Perumus.password === password) {
-            userType = 'Perumus';
-        } else if (users.Mushahih.username === username && users.Mushahih.password === password) {
-            userType = 'Mushahih';
-        } else if (users.Diskusan.some(user => user.username === username && user.password === password)) {
-            userType = 'Diskusan';
-        }
+    let userType = null;
+    if (users.Admin.username === username && users.Admin.password === password) {
+        userType = 'Admin';
+    } else if (users.Perumus.username === username && users.Perumus.password === password) {
+        userType = 'Perumus';
+    } else if (users.Mushahih.username === username && users.Mushahih.password === password) {
+        userType = 'Mushahih';
+    } else if (users.Diskusan.some(user => user.username === username && user.password === password)) {
+        userType = 'Diskusan';
+    }
 
-        if (userType) {
-            res.status(200).json({ userType });
-        } else {
-            res.status(401).send('Invalid username or password');
-        }
-    });
+    if (userType) {
+        res.status(200).json({ userType });
+    } else {
+        res.status(401).send('Invalid username or password');
+    }
 });
 
 app.get('/data/:folderName', (req, res) => {
@@ -86,6 +83,26 @@ app.get('/data/:folderName/:fileName', (req, res) => {
     });
 });
 
+// Route to save Pandangan Awal content
+app.post('/save-pandangan-awal', (req, res) => {
+    const { content, userName } = req.body;
+
+    if (!userName) {
+        return res.status(400).send('Username is required');
+    }
+
+    const filePath = path.join(__dirname, 'data', 'pandangan-awal', `pandangan-awal-${userName}.md`);
+
+    fs.writeFile(filePath, content, 'utf8', err => {
+        if (err) {
+            console.error('Error saving Pandangan Awal:', err);
+            return res.status(500).send('Internal Server Error');
+        }
+        res.status(200).json({ message: 'Pandangan Awal saved successfully' });
+    });
+});
+
+
 // Route to save Tashih content
 app.post('/save-tashih', (req, res) => {
     let body = '';
@@ -123,6 +140,25 @@ app.post('/save-rumusan', (req, res) => {
             }
             res.status(200).json({ message: 'Rumusan saved successfully' });
         });
+    });
+});
+
+// Route to save Paparan content
+app.post('/save-paparan', (req, res) => {
+    const { content } = req.body;
+
+    if (!content) {
+        return res.status(400).json({ error: 'Content is required' });
+    }
+
+    const filePath = path.join(__dirname, 'data', 'paparan', 'paparan.md');
+
+    fs.writeFile(filePath, content, 'utf8', err => {
+        if (err) {
+            console.error('Error saving Paparan:', err);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+        res.status(200).json({ message: 'Paparan saved successfully' });
     });
 });
 

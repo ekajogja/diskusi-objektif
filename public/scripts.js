@@ -1,10 +1,17 @@
 document.addEventListener('DOMContentLoaded', function() {
     let isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
     const userType = localStorage.getItem('userType');
+    const submitTashihButton = document.getElementById('submit-tashih');
+    const submitRumusanButton = document.getElementById('submit-rumusan');
+    const submitPandanganAwalButton = document.getElementById('submit-pandangan-awal');
+    const submitPaparanButton = document.getElementById('submit-paparan');
+
     if (isLoggedIn && userType) {
         showMenuBasedOnUser(userType);
         if (window.location.pathname.includes('tashih.html')) {
             loadRumusanContent();
+        } else if (window.location.pathname.includes('pandangan-awal.html')) {
+            loadPaparanContent();
         }
     }
 
@@ -26,6 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const { userType } = await response.json();
                 localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('userType', userType);
+                localStorage.setItem('userName', username); 
                 showMenuBasedOnUser(userType);
             } else {
                 alert("Invalid username or password");
@@ -40,13 +48,13 @@ document.addEventListener('DOMContentLoaded', function() {
         menu.innerHTML = '<a href="index.html" class="pure-button"><i class="fas fa-home"></i> Beranda</a>'; // Always show Beranda
 
         const buttons = [
-            { text: 'Pandangan Awal', showFor: ['Admin', 'Diskusan'], page: 'pandangan-awal.html' },
-            { text: 'Sanggahan', showFor: ['Admin', 'Diskusan'], page: 'sanggahan.html' },
-            { text: 'Izin Sanggahan', showFor: ['Admin', 'Diskusan'], page: 'izin-sanggahan.html' },
-            { text: 'Jawaban', showFor: ['Admin', 'Diskusan'], page: 'jawaban.html' },
-            { text: 'Rumusan', showFor: ['Admin', 'Perumus'], page: 'rumusan.html' },
-            { text: 'Tashih', showFor: ['Admin', 'Mushahih'], page: 'tashih.html' },
-            { text: 'Dasbor Admin', showFor: ['Admin'], page: 'dasbor-admin.html' }
+            { text: 'Paparan', showFor: ['Admin'], page: 'paparan.html' },
+            { text: 'Pandangan Awal', showFor: ['Diskusan'], page: 'pandangan-awal.html' },
+            { text: 'Sanggahan', showFor: ['Diskusan'], page: 'sanggahan.html' },
+            { text: 'Izin Sanggahan', showFor: ['Diskusan'], page: 'izin-sanggahan.html' },
+            { text: 'Jawaban', showFor: ['Diskusan'], page: 'jawaban.html' },
+            { text: 'Rumusan', showFor: ['Perumus'], page: 'rumusan.html' },
+            { text: 'Tashih', showFor: ['Mushahih'], page: 'tashih.html' }
         ];
 
         buttons.forEach(button => {
@@ -84,17 +92,29 @@ document.addEventListener('DOMContentLoaded', function() {
             button.addEventListener('click', function() {
                 localStorage.removeItem('isLoggedIn');
                 localStorage.removeItem('userType');
+                localStorage.removeItem('userName');
                 isLoggedIn = false; // Reset the flag
                 alert('Logged out successfully!');
                 setTimeout(() => {
                     window.location.href = 'index.html';
-                }, 3000);
+                }, 1000);
             });
         } else {
             button.id = 'login-button';
             button.textContent = 'Login';
         }
         menu.appendChild(button);
+    }
+
+    function loadPaparanContent() {
+        fetch('/data/paparan/paparan.md')
+            .then(response => response.text())
+            .then(markdown => {
+                const converter = new showdown.Converter();
+                const html = converter.makeHtml(markdown);
+                document.getElementById('left-content-files').innerHTML = html;
+            })
+            .catch(error => console.error('Error loading Paparan content:', error));
     }
 
     function loadRumusanContent() {
@@ -108,7 +128,6 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => console.error('Error loading Rumusan content:', error));
     }
 
-    const submitTashihButton = document.getElementById('submit-tashih');
     if (submitTashihButton) {
         submitTashihButton.addEventListener('click', function() {
             const tashihEditor = document.getElementById('tashih-editor');
@@ -142,7 +161,6 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Submit Tashih button not found');
     }
 
-    const submitRumusanButton = document.getElementById('submit-rumusan');
     if (submitRumusanButton) {
         submitRumusanButton.addEventListener('click', function() {
             const rumusanEditor = document.getElementById('rumusan-editor');
@@ -174,6 +192,74 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     } else {
         console.error('Submit Rumusan button not found');
+    }
+
+    if (submitPandanganAwalButton) {
+        submitPandanganAwalButton.addEventListener('click', function() {
+            const pandanganAwalEditor = document.getElementById('pandangan-awal-editor');
+            const diskusanEditor = document.getElementById('diskusan-editor');
+
+            const pandanganAwalContent = pandanganAwalEditor.innerHTML;
+            const diskusanContent = diskusanEditor.innerHTML;
+            
+            const userName = localStorage.getItem('userName');
+            const markdownContent = `Pandangan Awal ${userName}\n---\nDiskusan: ${pandanganAwalContent}\n\nPenjelasan:\n${diskusanContent}`;
+            
+
+            fetch('/save-pandangan-awal', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ content: markdownContent, username: userName })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Pandangan Awal saved successfully!');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
+            })
+            .catch(error => {
+                console.error('Error saving Pandangan Awal:', error);
+                alert('Failed to save Pandangan Awal. Please try again.');
+            });
+        });
+    } else {
+        console.error('Submit Pandangan Awal button not found');
+    }
+
+    if (submitPaparanButton) {
+        submitPaparanButton.addEventListener('click', function() {
+            const paparanEditor = document.getElementById('paparan-editor');
+            const narsumEditor = document.getElementById('narsum-editor');
+
+            const paparanContent = paparanEditor.innerHTML;
+            const narsumContent = narsumEditor.innerHTML;
+
+            const markdownContent = `Paparan\n---\nNarasumber: ${narsumContent}\n\nPenjelasan:\n${paparanContent}`;
+
+            fetch('/save-paparan', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ content: markdownContent })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Paparan saved successfully!');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 3000);
+            })
+            .catch(error => {
+                console.error('Error saving Paparan:', error);
+                alert('Failed to save Paparan. Please try again.');
+            });
+        });
+    } else {
+        console.error('Submit Paparan button not found');
     }
 
     document.querySelectorAll('#collapsible-menu .pure-menu-link').forEach(link => {

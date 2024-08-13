@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pandangan Awal</title>
+    <title>Paparan</title>
     <link rel="stylesheet" href="pure-min.css">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -14,43 +14,35 @@
 </head>
 <body>
     <div class="container">
-        <h1>Pandangan Awal</h1>
+        <h1>Paparan</h1>
         <div id="menu">
             <a href="index.html" class="pure-button"><i class="fas fa-home"></i> Beranda</a>
             <!-- Other menu items will be dynamically added by scripts.js -->
         </div>
         <div id="content">
-            <div class="split-content">
-                <div class="left-content">
-                    <h2>Paparan</h2>
-                    <div id="left-content-files"></div>
-                </div>
-                <div class="right-content">
                     <div class="editor-section">
-                        <h2>Pandangan Awal</h2>
-                        <div id="pandangan-awal-editor" class="markdown-editor medium-editor"></div>
+                        <h2>Paparan</h2>
+                        <div id="paparan-editor" class="markdown-editor medium-editor"></div>
                     </div>
                     <div class="editor-section">
-                        <h2>Diskusan</h2>
-                        <div id="diskusan-editor" class="markdown-editor medium-editor"></div>
+                        <h2>Narasumber</h2>
+                        <div id="narsum-editor" class="markdown-editor medium-editor"></div>
                     </div>
-                    <button id="submit-pandangan-awal" class="pure-button">Simpan Pandangan Awal</button>
-                </div>
-            </div>
+                    <button id="submit-paparan" class="pure-button">Simpan Paparan</button>
         </div>
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const pandanganawalEditor = new MediumEditor('#pandangan-awal-editor', {
+            const paparanEditor = new MediumEditor('#paparan-editor', {
                 placeholder: {
-                    text: 'Start typing your Pandangan Awal here...',
+                    text: 'Start typing your Paparan here...',
                     hideOnClick: true
                 }
             });
 
-            const diskusanEditor = new MediumEditor('#diskusan-editor', {
+            const narsumEditor = new MediumEditor('#narsum-editor', {
                 placeholder: {
-                    text: 'Enter Diskusan name here...',
+                    text: 'Enter Narasumber here...',
                     hideOnClick: true
                 }
             });

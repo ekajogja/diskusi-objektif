@@ -10,7 +10,7 @@
 
 - [ ] Paparan flow
 
-- [ ] Pandangan Awal flow
+- [x] Pandangan Awal flow
 
 - [ ] Sanggahan flow
 
