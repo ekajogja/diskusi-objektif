@@ -18,4 +18,4 @@
 
 - [x] Jawaban flow
 
-- [ ] User guide
+- [x] User guide -> [Panduan HSI Submission form](https://github.com/mahadsiber/mahadsiber.github.io/wiki/Panduan-HSI-Submission-Form)
