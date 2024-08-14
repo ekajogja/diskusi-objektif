@@ -1,10 +1,10 @@
 # diskusi-objektif
 
-### To Do:
+## To Do
 
 - [x] User roles, menu, pages
 
-- [x] Tashih flow 
+- [x] Tashih flow
 
 - [x] Rumusan flow
 
@@ -18,4 +18,4 @@
 
 - [x] Jawaban flow
 
-- [ ] User guide 
+- [ ] User guide

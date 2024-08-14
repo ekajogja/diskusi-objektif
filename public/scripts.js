@@ -494,5 +494,4 @@ document.addEventListener('DOMContentLoaded', function() {
             contentDiv.appendChild(fileDiv);
         }
     }
-  }
-);
+});
