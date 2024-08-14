@@ -1,15 +1,21 @@
 const express = require('express');
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs').promises; // Use promises for non-blocking I/O
 const showdown = require('showdown');
 const app = express();
 const port = 8053;
 
-app.use(express.json());
-
-// Serve static files from the "public" directory
 app.use(express.static('public'));
 app.use(express.static('data'));
+app.use(express.json());
+
+const ensureDirectoryExists = async dirPath => {
+    try {
+        await fs.access(dirPath);
+    } catch (err) {
+        await fs.mkdir(dirPath, { recursive: true });
+    }
+};
 
 const users = {
     Admin: { username: 'admin', password: 'admin123' },
@@ -43,180 +49,66 @@ app.post('/login', (req, res) => {
     }
 });
 
-app.get('/data/:folderName', (req, res) => {
+app.get('/data/:folderName', async (req, res) => {
     const folderName = req.params.folderName;
     const folderPath = path.join(__dirname, 'data', folderName);
 
-    fs.stat(folderPath, (err, stats) => {
-        if (err) {
-            console.error(`Error stating directory: ${err}`);
-            return res.status(500).send('Unable to stat directory: ' + err);
-        }
-
+    try {
+        const stats = await fs.stat(folderPath);
         if (!stats.isDirectory()) {
-            console.error(`Path is not a directory: ${folderPath}`);
             return res.status(400).send('Not a directory');
         }
 
-        fs.readdir(folderPath, (err, files) => {
-            if (err) {
-                console.error(`Error scanning directory: ${err}`);
-                return res.status(500).send('Unable to scan directory: ' + err);
-            }
-            console.log(`Files found: ${files}`);
-            res.json(files.filter(file => file.endsWith('.md')));
-        });
-    });
+        const files = await fs.readdir(folderPath);
+        console.log(`Files found: ${files}`);
+        res.json(files.filter(file => file.endsWith('.md')));
+    } catch (err) {
+        console.error(`Error accessing directory: ${err}`);
+        res.status(500).send('Unable to access directory: ' + err);
+    }
 });
 
-// Route to serve individual markdown files
-app.get('/data/:folderName/:fileName', (req, res) => {
+app.get('/data/:folderName/:fileName', async (req, res) => {
     const folderName = req.params.folderName;
     const fileName = req.params.fileName;
     const filePath = path.join(__dirname, 'data', folderName, fileName);
 
-    fs.readFile(filePath, 'utf8', (err, data) => {
-        if (err) {
-            return res.status(500).send('Unable to read file: ' + err);
-        }
+    try {
+        await fs.access(filePath, fs.constants.F_OK);
+        const data = await fs.readFile(filePath, 'utf8');
         res.send(data);
-    });
+    } catch (err) {
+        console.error(`Error reading file: ${err}`);
+        res.status(404).send('File not found');
+    }
 });
 
-// Route to save Paparan content
-app.post('/save-paparan', (req, res) => {
-    const { content } = req.body;
+const saveContent = async (req, res, folder, fileName, contentKey = 'content') => {
+    const content = req.body[contentKey];
 
     if (!content) {
         return res.status(400).json({ error: 'Content is required' });
     }
 
-    const filePath = path.join(__dirname, 'data', 'paparan', 'paparan.md');
+    const filePath = path.join(__dirname, 'data', folder, fileName);
+    await ensureDirectoryExists(path.dirname(filePath));
 
-    fs.writeFile(filePath, content, 'utf8', err => {
-        if (err) {
-            console.error('Error saving Paparan:', err);
-            return res.status(500).json({ error: 'Internal Server Error' });
-        }
-        res.status(200).json({ message: 'Paparan saved successfully' });
-    });
-});
-
-// Route to save Pandangan Awal content
-app.post('/save-pandangan-awal', (req, res) => {
-    const { content, userName } = req.body;
-
-    if (!userName) {
-        return res.status(400).send('Username is required');
+    try {
+        await fs.writeFile(filePath, content, 'utf8');
+        res.status(200).json({ message: `${folder} saved successfully` });
+    } catch (err) {
+        console.error(`Error saving ${folder}:`, err);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
+};
 
-    const filePath = path.join(__dirname, 'data', 'pandangan-awal', `pandangan-awal-${userName}.md`);
-
-    fs.writeFile(filePath, content, 'utf8', err => {
-        if (err) {
-            console.error('Error saving Pandangan Awal:', err);
-            return res.status(500).send('Internal Server Error');
-        }
-        res.status(200).json({ message: 'Pandangan Awal saved successfully' });
-    });
-});
-
-// Route to save Sanggahan content
-app.post('/save-sanggahan', (req, res) => {
-    const { content, userName } = req.body;
-
-    if (!userName) {
-        return res.status(400).send('Username is required');
-    }
-
-    const filePath = path.join(__dirname, 'data', 'sanggahan', `sanggahan-${userName}.md`);
-
-    fs.writeFile(filePath, content, 'utf8', err => {
-        if (err) {
-            console.error('Error saving Sanggahan:', err);
-            return res.status(500).send('Internal Server Error');
-        }
-        res.status(200).json({ message: 'Sanggahan saved successfully' });
-    });
-});
-
-// Route to save Izin Sanggahan content
-app.post('/save-izin-sanggahan', (req, res) => {
-    const { content, userName } = req.body;
-
-    if (!userName) {
-        return res.status(400).send('Username is required');
-    }
-
-    const filePath = path.join(__dirname, 'data', 'izin-sanggahan', `izin-sanggahan-${userName}.md`);
-
-    fs.writeFile(filePath, content, 'utf8', err => {
-        if (err) {
-            console.error('Error saving Izin Sanggahan:', err);
-            return res.status(500).send('Internal Server Error');
-        }
-        res.status(200).json({ message: 'Izin Sanggahan saved successfully' });
-    });
-});
-
-// Route to save Jawaban content
-app.post('/save-jawaban', (req, res) => {
-    const { content, userName } = req.body;
-
-    if (!userName) {
-        return res.status(400).send('Username is required');
-    }
-
-    const filePath = path.join(__dirname, 'data', 'jawaban', `jawaban-${userName}.md`);
-
-    fs.writeFile(filePath, content, 'utf8', err => {
-        if (err) {
-            console.error('Error saving Jawaban:', err);
-            return res.status(500).send('Internal Server Error');
-        }
-        res.status(200).json({ message: 'Jawaban saved successfully' });
-    });
-});
-
-// Route to save Rumusan content
-app.post('/save-rumusan', (req, res) => {
-    let body = '';
-    req.on('data', chunk => {
-        body += chunk.toString();
-    });
-    req.on('end', () => {
-        const { content } = JSON.parse(body);
-        const filePath = path.join(__dirname, 'data', 'rumusan', 'rumusan.md');
-
-        fs.writeFile(filePath, content, 'utf8', err => {
-            if (err) {
-                console.error('Error saving Rumusan:', err);
-                return res.status(500).send('Internal Server Error');
-            }
-            res.status(200).json({ message: 'Rumusan saved successfully' });
-        });
-    });
-});
-
-// Route to save Tashih content
-app.post('/save-tashih', (req, res) => {
-    let body = '';
-    req.on('data', chunk => {
-        body += chunk.toString();
-    });
-    req.on('end', () => {
-        const { content } = JSON.parse(body);
-        const filePath = path.join(__dirname, 'data', 'tashih', 'tashih.md');
-
-        fs.writeFile(filePath, content, 'utf8', err => {
-            if (err) {
-                console.error('Error saving Tashih:', err);
-                return res.status(500).send('Internal Server Error');
-            }
-            res.status(200).json({ message: 'Tashih saved successfully' });
-        });
-    });
-});
+app.post('/save-paparan', (req, res) => saveContent(req, res, 'paparan', 'paparan.md'));
+app.post('/save-pandangan-awal', (req, res) => saveContent(req, res, 'pandangan-awal', `pandangan-awal-${req.body.username}.md`, 'content'));
+app.post('/save-sanggahan', (req, res) => saveContent(req, res, 'sanggahan', `sanggahan-${req.body.username}.md`, 'content'));
+app.post('/save-izin-sanggahan', (req, res) => saveContent(req, res, 'izin-sanggahan', `izin-sanggahan-${req.body.username}.md`, 'content'));
+app.post('/save-jawaban', (req, res) => saveContent(req, res, 'jawaban', `jawaban-${req.body.username}.md`, 'content'));
+app.post('/save-rumusan', (req, res) => saveContent(req, res, 'rumusan', 'rumusan.md'));
+app.post('/save-tashih', (req, res) => saveContent(req, res, 'tashih', 'tashih.md'));
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);

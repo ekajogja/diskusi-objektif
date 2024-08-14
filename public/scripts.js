@@ -10,66 +10,36 @@ document.addEventListener('DOMContentLoaded', function() {
     const submitPandanganAwalButton = document.getElementById('submit-pandangan-awal');
     const submitPaparanButton = document.getElementById('submit-paparan');
 
-    if (isLoggedIn && userType) {
-        showMenuBasedOnUser(userType);
-        if (window.location.pathname.includes('tashih.html')) {
-            loadRumusanContent();
-        } else if (window.location.pathname.includes('pandangan-awal.html')) {
-            loadPaparanContent();
-        } else if (window.location.pathname.includes('sanggahan.html')) {
-            if (username == 'diskusan1') {
-                loadPandanganAwalDiskusan2Content();
-            }
-        } else if (window.location.pathname.includes('sanggahan.html')) {
-            if (username == 'diskusan2') {
-                loadPandanganAwalDiskusan1Content();
-            }
-        } else if (window.location.pathname.includes('izin-sanggahan.html')) {
-            if (username == 'diskusan1') {
-                loadSanggahanDiskusan2Content();
-            }
-        } else if (window.location.pathname.includes('izin-sanggahan.html')) {
-            if (username == 'diskusan2') {
-                loadSanggahanDiskusan1Content();
-            }
-        } else if (window.location.pathname.includes('jawaban.html')) {
-            if (username == 'diskusan1') {
-                loadSanggahanDiskusan2Content();
-                loadIzinSanggahanDiskusan1Content();
-            }
-        } else if (window.location.pathname.includes('jawaban.html')) {
-            if (username == 'diskusan2') {
-                loadSanggahanDiskusan1Content();
-                loadIzinSanggahanDiskusan2Content();
-            }
-        }
-
     if (loginButton) {
         loginButton.addEventListener('click', async function() {
             const username = prompt("Enter username:");
             const password = prompt("Enter password:");
 
-            const response = await fetch('/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ username, password })
-            });
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
 
-            if (response.status === 200) {
-                const { userType } = await response.json();
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('userType', userType);
-                localStorage.setItem('userName', username); 
-                showMenuBasedOnUser(userType);
-            } else {
-                alert("Invalid username or password");
+                if (response.status === 200) {
+                    const { userType } = await response.json();
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('userType', userType);
+                    localStorage.setItem('userName', username);
+                    isLoggedIn = true; 
+                    showMenuBasedOnUser(userType);
+                } else {
+                    alert("Invalid username or password");
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('Failed to login. Please try again.');
             }
         });
-    } else {
-        console.error('Login button not found');
-    }
+    } 
 
     function showMenuBasedOnUser(userType) {
         const menu = document.getElementById('menu');
@@ -132,6 +102,34 @@ document.addEventListener('DOMContentLoaded', function() {
             button.textContent = 'Login';
         }
         menu.appendChild(button);
+    }
+
+    const userName = localStorage.getItem('userName');
+    if (isLoggedIn && userType) {
+        showMenuBasedOnUser(userType);
+        if (window.location.pathname.includes('tashih.html')) {
+            loadRumusanContent();
+        } else if (window.location.pathname.includes('pandangan-awal.html')) {
+            loadPaparanContent();
+        } else if (window.location.pathname.includes("/sanggahan.html")) {
+            if (userName == 'diskusan1') {
+                loadPandanganAwalDiskusan2Content();
+            } else if (userName == 'diskusan2') {
+                loadPandanganAwalDiskusan1Content();
+            }
+        } else if (window.location.pathname.includes("izin-sanggahan.html")) {
+            if (userName == 'diskusan1') {
+                loadSanggahanDiskusan2Content();
+            } else if (userName == 'diskusan2') {
+                loadSanggahanDiskusan1Content();
+            }
+        }  else if (window.location.pathname.includes('jawaban.html')) {
+            if (userName == 'diskusan1') {
+                loadSanggahanDiskusan2Content();
+            } else if (userName == 'diskusan2') {
+                loadSanggahanDiskusan1Content();
+            }
+        }
     }
 
     function loadPaparanContent() {
@@ -223,110 +221,141 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (submitTashihButton) {
-        submitTashihButton.addEventListener('click', function() {
+        submitTashihButton.addEventListener('click', async function() {
             const tashihEditor = document.getElementById('tashih-editor');
             const mushahihEditor = document.getElementById('mushahih-editor');
+
+            if (!tashihEditor || !mushahihEditor) {
+                console.error('Editor elements not found');
+                return;
+            }
 
             const tashihContent = tashihEditor.innerHTML;
             const mushahihContent = mushahihEditor.innerHTML;
 
             const markdownContent = `Tashih\n---\nMushahih: ${mushahihContent}\n\nPenjelasan:\n${tashihContent}`;
 
-            fetch('/save-tashih', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ content: markdownContent })
-            })
-            .then(response => response.json())
-            .then(data => {
+            try {
+                console.log('Sending request to /save-tashih with content:', markdownContent);
+                const response = await fetch('/save-tashih', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ content: markdownContent })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Response from server:', data);
                 alert('Tashih saved successfully!');
                 setTimeout(() => {
                     window.location.href = 'index.html';
                 }, 3000);
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error('Error saving Tashih:', error);
                 alert('Failed to save Tashih. Please try again.');
-            });
+            }
         });
-    } else {
-        console.error('Submit Tashih button not found');
-    }
+    } 
 
     if (submitRumusanButton) {
-        submitRumusanButton.addEventListener('click', function() {
+        submitRumusanButton.addEventListener('click', async function() {
             const rumusanEditor = document.getElementById('rumusan-editor');
             const perumusEditor = document.getElementById('perumus-editor');
+
+            if (!rumusanEditor || !perumusEditor) {
+                console.error('Editor elements not found');
+                return;
+            }
 
             const rumusanContent = rumusanEditor.innerHTML;
             const perumusContent = perumusEditor.innerHTML;
 
             const markdownContent = `Rumusan\n---\nPerumus: ${perumusContent}\n\nPenjelasan:\n${rumusanContent}`;
 
-            fetch('/save-rumusan', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ content: markdownContent })
-            })
-            .then(response => response.json())
-            .then(data => {
+            try {
+                console.log('Sending request to /save-rumusan with content:', markdownContent);
+                const response = await fetch('/save-rumusan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ content: markdownContent })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Response from server:', data);
                 alert('Rumusan saved successfully!');
                 setTimeout(() => {
                     window.location.href = 'index.html';
                 }, 3000);
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error('Error saving Rumusan:', error);
                 alert('Failed to save Rumusan. Please try again.');
-            });
+            }
         });
-    } else {
-        console.error('Submit Rumusan button not found');
-    }
+    } 
 
     if (submitJawabanButton) {
-        submitJawabanButton.addEventListener('click', function() {
+        submitJawabanButton.addEventListener('click', async function() {
             const jawabanEditor = document.getElementById('jawaban-editor');
             const diskusanEditor = document.getElementById('diskusan-editor');
+
+            if (!jawabanEditor || !diskusanEditor) {
+                console.error('Editor elements not found');
+                return;
+            }
 
             const jawabanContent = jawabanEditor.innerHTML;
             const diskusanContent = diskusanEditor.innerHTML;
             
             const userName = localStorage.getItem('userName');
-            const markdownContent = `Jawaban Sanggahan ${userName}\n---\nDiskusan: ${diskusanContent}\n\nPenjelasan:\n${jawabanContent}`;
+            const markdownContent = `Jawaban ${userName}\n---\nDiskusan: ${diskusanContent}\n\nPenjelasan:\n${jawabanContent}`;
             
+            try {
+                console.log('Sending request to /save-jawaban with content:', markdownContent);
+                const response = await fetch('/save-jawaban', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ content: markdownContent, username: userName })
+                });
 
-            fetch('/save-jawaban', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ content: markdownContent, username: userName })
-            })
-            .then(response => response.json())
-            .then(data => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Response from server:', data);
                 alert('Jawaban saved successfully!');
                 setTimeout(() => {
                     window.location.href = 'index.html';
                 }, 1000);
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error('Error saving Jawaban:', error);
                 alert('Failed to save Jawaban. Please try again.');
-            });
+            }
         });
-    } else {
-        console.error('Submit Izin Sanggahan button not found');
-    }
+    } 
 
     if (submitIzinSanggahanButton) {
-        submitIzinSanggahanButton.addEventListener('click', function() {
+        submitIzinSanggahanButton.addEventListener('click', async function() {
             const izinSanggahanEditor = document.getElementById('izin-sanggahan-editor');
             const diskusanEditor = document.getElementById('diskusan-editor');
+
+            if (!izinSanggahanEditor || !diskusanEditor) {
+                console.error('Editor elements not found');
+                return;
+            }
 
             const izinSanggahanContent = izinSanggahanEditor.innerHTML;
             const diskusanContent = diskusanEditor.innerHTML;
@@ -334,69 +363,86 @@ document.addEventListener('DOMContentLoaded', function() {
             const userName = localStorage.getItem('userName');
             const markdownContent = `Izin Sanggahan ${userName}\n---\nDiskusan: ${diskusanContent}\n\nPenjelasan:\n${izinSanggahanContent}`;
             
+            try {
+                console.log('Sending request to /save-izin-sanggahan with content:', markdownContent);
+                const response = await fetch('/save-izin-sanggahan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ content: markdownContent, username: userName })
+                });
 
-            fetch('/save-izin-sanggahan', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ content: markdownContent, username: userName })
-            })
-            .then(response => response.json())
-            .then(data => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Response from server:', data);
                 alert('Izin Sanggahan saved successfully!');
                 setTimeout(() => {
                     window.location.href = 'index.html';
                 }, 1000);
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error('Error saving Izin Sanggahan:', error);
                 alert('Failed to save Izin Sanggahan. Please try again.');
-            });
+            }
         });
-    } else {
-        console.error('Submit Izin Sanggahan button not found');
-    }
+    } 
 
     if (submitSanggahanButton) {
-        submitSanggahanButton.addEventListener('click', function() {
+        submitSanggahanButton.addEventListener('click', async function() {
             const sanggahanEditor = document.getElementById('sanggahan-editor');
             const diskusanEditor = document.getElementById('diskusan-editor');
-
+    
+            if (!sanggahanEditor || !diskusanEditor) {
+                console.error('Editor elements not found');
+                return;
+            }
+    
             const sanggahanContent = sanggahanEditor.innerHTML;
             const diskusanContent = diskusanEditor.innerHTML;
-            
+    
             const userName = localStorage.getItem('userName');
             const markdownContent = `Sanggahan ${userName}\n---\nDiskusan: ${diskusanContent}\n\nPenjelasan:\n${sanggahanContent}`;
-            
+    
+            try {
+                console.log('Sending request to /save-sanggahan with content:', markdownContent);
+                const response = await fetch('/save-sanggahan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ content: markdownContent, username: userName })
+                });
 
-            fetch('/save-sanggahan', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ content: markdownContent, username: userName })
-            })
-            .then(response => response.json())
-            .then(data => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Response from server:', data);
                 alert('Sanggahan saved successfully!');
                 setTimeout(() => {
                     window.location.href = 'index.html';
                 }, 1000);
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error('Error saving Sanggahan:', error);
                 alert('Failed to save Sanggahan. Please try again.');
-            });
+            }
         });
-    } else {
-        console.error('Submit Sanggahan button not found');
     }
+    
 
     if (submitPandanganAwalButton) {
-        submitPandanganAwalButton.addEventListener('click', function() {
+        submitPandanganAwalButton.addEventListener('click', async function() {
             const pandanganAwalEditor = document.getElementById('pandangan-awal-editor');
             const diskusanEditor = document.getElementById('diskusan-editor');
+
+            if (!pandanganAwalEditor || !diskusanEditor) {
+                console.error('Editor elements not found');
+                return;
+            }
 
             const pandanganAwalContent = pandanganAwalEditor.innerHTML;
             const diskusanContent = diskusanEditor.innerHTML;
@@ -404,61 +450,73 @@ document.addEventListener('DOMContentLoaded', function() {
             const userName = localStorage.getItem('userName');
             const markdownContent = `Pandangan Awal ${userName}\n---\nDiskusan: ${diskusanContent}\n\nPenjelasan:\n${pandanganAwalContent}`;
             
+            try {
+                console.log('Sending request to /save-pandangan-awal with content:', markdownContent);
+                const response = await fetch('/save-pandangan-awal', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ content: markdownContent, username: userName })
+                });
 
-            fetch('/save-pandangan-awal', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ content: markdownContent, username: userName })
-            })
-            .then(response => response.json())
-            .then(data => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Response from server:', data);
                 alert('Pandangan Awal saved successfully!');
                 setTimeout(() => {
                     window.location.href = 'index.html';
                 }, 1000);
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error('Error saving Pandangan Awal:', error);
                 alert('Failed to save Pandangan Awal. Please try again.');
-            });
+            }
         });
-    } else {
-        console.error('Submit Pandangan Awal button not found');
-    }
+    } 
 
     if (submitPaparanButton) {
-        submitPaparanButton.addEventListener('click', function() {
+        submitPaparanButton.addEventListener('click', async function() {
             const paparanEditor = document.getElementById('paparan-editor');
             const narsumEditor = document.getElementById('narsum-editor');
+
+            if (!paparanEditor || !narsumEditor) {
+                console.error('Editor elements not found');
+                return;
+            }
 
             const paparanContent = paparanEditor.innerHTML;
             const narsumContent = narsumEditor.innerHTML;
 
             const markdownContent = `Paparan\n---\nNarasumber: ${narsumContent}\n\nPenjelasan:\n${paparanContent}`;
 
-            fetch('/save-paparan', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ content: markdownContent })
-            })
-            .then(response => response.json())
-            .then(data => {
+            try {
+                console.log('Sending request to /save-paparan with content:', markdownContent);
+                const response = await fetch('/save-paparan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ content: markdownContent })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Response from server:', data);
                 alert('Paparan saved successfully!');
                 setTimeout(() => {
                     window.location.href = 'index.html';
                 }, 3000);
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error('Error saving Paparan:', error);
                 alert('Failed to save Paparan. Please try again.');
-            });
+            }
         });
-    } else {
-        console.error('Submit Paparan button not found');
     }
 
     document.querySelectorAll('#collapsible-menu .pure-menu-link').forEach(link => {
@@ -480,18 +538,22 @@ document.addEventListener('DOMContentLoaded', function() {
         const contentDiv = document.getElementById('markdown-content');
         contentDiv.innerHTML = '';
 
-        const response = await fetch(`/data/${folderName}`);
-        const files = await response.json();
+        try {
+            const response = await fetch(`/data/${folderName}`);
+            const files = await response.json();
 
-        for (const file of files) {
-            const fileResponse = await fetch(`/data/${folderName}/${file}`);
-            const markdown = await fileResponse.text();
-            const converter = new showdown.Converter();
-            const html = converter.makeHtml(markdown);
+            for (const file of files) {
+                const fileResponse = await fetch(`/data/${folderName}/${file}`);
+                const markdown = await fileResponse.text();
+                const converter = new showdown.Converter();
+                const html = converter.makeHtml(markdown);
 
-            const fileDiv = document.createElement('div');
-            fileDiv.innerHTML = html;
-            contentDiv.appendChild(fileDiv);
+                const fileDiv = document.createElement('div');
+                fileDiv.innerHTML = html;
+                contentDiv.appendChild(fileDiv);
+            }
+        } catch (error) {
+            console.error('Error loading markdown files:', error);
         }
     }
 });

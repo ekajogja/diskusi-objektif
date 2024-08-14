@@ -1,6 +1,6 @@
 Rumusan
 ---
-Perumus: <p>1. Perumus Satu<br>2. Perumus Dua</p>
+Perumus: <p>1. Perumus Satoe<br>2. Perumus Doea</p>
 
 Penjelasan:
-<p>Ini adalah isi rumusan</p>
+<p>Ini adalah hasil rumusan yang sudah kami susun.</p>

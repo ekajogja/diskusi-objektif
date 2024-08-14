@@ -1,6 +1,6 @@
 Tashih
 ---
-Mushahih: <p>1. Mushahih Satu<br>2. Mushahih Dua</p>
+Mushahih: <p>1. KH Siji<br>2. KH Loro</p>
 
 Penjelasan:
-<p>Ini adalah isi tashih.</p>
+<p>Berikut ini hasil keputusan musyawarah tim tashih.</p>
