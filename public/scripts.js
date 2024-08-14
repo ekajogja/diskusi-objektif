@@ -1,8 +1,12 @@
 document.addEventListener('DOMContentLoaded', function() {
     let isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
     const userType = localStorage.getItem('userType');
+    const loginButton = document.getElementById('login-button');
     const submitTashihButton = document.getElementById('submit-tashih');
     const submitRumusanButton = document.getElementById('submit-rumusan');
+    const submitSanggahanButton = document.getElementById('submit-sanggahan');
+    const submitIzinSanggahanButton = document.getElementById('submit-izin-sanggahan');
+    const submitJawabanButton = document.getElementById('submit-jawaban');
     const submitPandanganAwalButton = document.getElementById('submit-pandangan-awal');
     const submitPaparanButton = document.getElementById('submit-paparan');
 
@@ -12,10 +16,34 @@ document.addEventListener('DOMContentLoaded', function() {
             loadRumusanContent();
         } else if (window.location.pathname.includes('pandangan-awal.html')) {
             loadPaparanContent();
+        } else if (window.location.pathname.includes('sanggahan.html')) {
+            if (username == 'diskusan1') {
+                loadPandanganAwalDiskusan2Content();
+            }
+        } else if (window.location.pathname.includes('sanggahan.html')) {
+            if (username == 'diskusan2') {
+                loadPandanganAwalDiskusan1Content();
+            }
+        } else if (window.location.pathname.includes('izin-sanggahan.html')) {
+            if (username == 'diskusan1') {
+                loadSanggahanDiskusan2Content();
+            }
+        } else if (window.location.pathname.includes('izin-sanggahan.html')) {
+            if (username == 'diskusan2') {
+                loadSanggahanDiskusan1Content();
+            }
+        } else if (window.location.pathname.includes('jawaban.html')) {
+            if (username == 'diskusan1') {
+                loadSanggahanDiskusan2Content();
+                loadIzinSanggahanDiskusan1Content();
+            }
+        } else if (window.location.pathname.includes('jawaban.html')) {
+            if (username == 'diskusan2') {
+                loadSanggahanDiskusan1Content();
+                loadIzinSanggahanDiskusan2Content();
+            }
         }
-    }
 
-    const loginButton = document.getElementById('login-button');
     if (loginButton) {
         loginButton.addEventListener('click', async function() {
             const username = prompt("Enter username:");
@@ -117,6 +145,72 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => console.error('Error loading Paparan content:', error));
     }
 
+    function loadPandanganAwalDiskusan1Content() {
+        fetch('/data/pandangan-awal/pandangan-awal-diskusan1.md')
+            .then(response => response.text())
+            .then(markdown => {
+                const converter = new showdown.Converter();
+                const html = converter.makeHtml(markdown);
+                document.getElementById('left-content-files').innerHTML = html;
+            })
+            .catch(error => console.error('Error loading Pandangan Awal Diskusan 1 content:', error));
+    }
+
+    function loadPandanganAwalDiskusan2Content() {
+        fetch('/data/pandangan-awal/pandangan-awal-diskusan2.md')
+            .then(response => response.text())
+            .then(markdown => {
+                const converter = new showdown.Converter();
+                const html = converter.makeHtml(markdown);
+                document.getElementById('left-content-files').innerHTML = html;
+            })
+            .catch(error => console.error('Error loading Pandangan Awal Diskusan 2 content:', error));
+    }
+
+    function loadSanggahanDiskusan1Content() {
+        fetch('/data/sanggahan/sanggahan-diskusan1.md')
+            .then(response => response.text())
+            .then(markdown => {
+                const converter = new showdown.Converter();
+                const html = converter.makeHtml(markdown);
+                document.getElementById('left-content-files').innerHTML = html;
+            })
+            .catch(error => console.error('Error loading Sanggahan Diskusan 1 content:', error));
+    }
+
+    function loadSanggahanDiskusan2Content() {
+        fetch('/data/sanggahan/sanggahan-diskusan2.md')
+            .then(response => response.text())
+            .then(markdown => {
+                const converter = new showdown.Converter();
+                const html = converter.makeHtml(markdown);
+                document.getElementById('left-content-files').innerHTML = html;
+            })
+            .catch(error => console.error('Error loading Sanggahan Diskusan 2 content:', error));
+    }
+
+    function loadIzinSanggahanDiskusan1Content() {
+        fetch('/data/izin-sanggahan/izin-sanggahan-diskusan1.md')
+            .then(response => response.text())
+            .then(markdown => {
+                const converter = new showdown.Converter();
+                const html = converter.makeHtml(markdown);
+                document.getElementById('left-content-files').innerHTML = html;
+            })
+            .catch(error => console.error('Error loading Izin Sanggahan Diskusan 1 content:', error));
+    }
+
+    function loadIzinSanggahanDiskusan2Content() {
+        fetch('/data/izin-sanggahan/izin-sanggahan-diskusan2.md')
+            .then(response => response.text())
+            .then(markdown => {
+                const converter = new showdown.Converter();
+                const html = converter.makeHtml(markdown);
+                document.getElementById('left-content-files').innerHTML = html;
+            })
+            .catch(error => console.error('Error loading Izin Sanggahan Diskusan 2 content:', error));
+    }
+
     function loadRumusanContent() {
         fetch('/data/rumusan/rumusan.md')
             .then(response => response.text())
@@ -194,6 +288,111 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Submit Rumusan button not found');
     }
 
+    if (submitJawabanButton) {
+        submitJawabanButton.addEventListener('click', function() {
+            const jawabanEditor = document.getElementById('jawaban-editor');
+            const diskusanEditor = document.getElementById('diskusan-editor');
+
+            const jawabanContent = jawabanEditor.innerHTML;
+            const diskusanContent = diskusanEditor.innerHTML;
+            
+            const userName = localStorage.getItem('userName');
+            const markdownContent = `Jawaban Sanggahan ${userName}\n---\nDiskusan: ${diskusanContent}\n\nPenjelasan:\n${jawabanContent}`;
+            
+
+            fetch('/save-jawaban', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ content: markdownContent, username: userName })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Jawaban saved successfully!');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
+            })
+            .catch(error => {
+                console.error('Error saving Jawaban:', error);
+                alert('Failed to save Jawaban. Please try again.');
+            });
+        });
+    } else {
+        console.error('Submit Izin Sanggahan button not found');
+    }
+
+    if (submitIzinSanggahanButton) {
+        submitIzinSanggahanButton.addEventListener('click', function() {
+            const izinSanggahanEditor = document.getElementById('izin-sanggahan-editor');
+            const diskusanEditor = document.getElementById('diskusan-editor');
+
+            const izinSanggahanContent = izinSanggahanEditor.innerHTML;
+            const diskusanContent = diskusanEditor.innerHTML;
+            
+            const userName = localStorage.getItem('userName');
+            const markdownContent = `Izin Sanggahan ${userName}\n---\nDiskusan: ${diskusanContent}\n\nPenjelasan:\n${izinSanggahanContent}`;
+            
+
+            fetch('/save-izin-sanggahan', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ content: markdownContent, username: userName })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Izin Sanggahan saved successfully!');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
+            })
+            .catch(error => {
+                console.error('Error saving Izin Sanggahan:', error);
+                alert('Failed to save Izin Sanggahan. Please try again.');
+            });
+        });
+    } else {
+        console.error('Submit Izin Sanggahan button not found');
+    }
+
+    if (submitSanggahanButton) {
+        submitSanggahanButton.addEventListener('click', function() {
+            const sanggahanEditor = document.getElementById('sanggahan-editor');
+            const diskusanEditor = document.getElementById('diskusan-editor');
+
+            const sanggahanContent = sanggahanEditor.innerHTML;
+            const diskusanContent = diskusanEditor.innerHTML;
+            
+            const userName = localStorage.getItem('userName');
+            const markdownContent = `Sanggahan ${userName}\n---\nDiskusan: ${diskusanContent}\n\nPenjelasan:\n${sanggahanContent}`;
+            
+
+            fetch('/save-sanggahan', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ content: markdownContent, username: userName })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Sanggahan saved successfully!');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
+            })
+            .catch(error => {
+                console.error('Error saving Sanggahan:', error);
+                alert('Failed to save Sanggahan. Please try again.');
+            });
+        });
+    } else {
+        console.error('Submit Sanggahan button not found');
+    }
+
     if (submitPandanganAwalButton) {
         submitPandanganAwalButton.addEventListener('click', function() {
             const pandanganAwalEditor = document.getElementById('pandangan-awal-editor');
@@ -203,7 +402,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const diskusanContent = diskusanEditor.innerHTML;
             
             const userName = localStorage.getItem('userName');
-            const markdownContent = `Pandangan Awal ${userName}\n---\nDiskusan: ${pandanganAwalContent}\n\nPenjelasan:\n${diskusanContent}`;
+            const markdownContent = `Pandangan Awal ${userName}\n---\nDiskusan: ${diskusanContent}\n\nPenjelasan:\n${pandanganAwalContent}`;
             
 
             fetch('/save-pandangan-awal', {
@@ -295,4 +494,5 @@ document.addEventListener('DOMContentLoaded', function() {
             contentDiv.appendChild(fileDiv);
         }
     }
-});
+  }
+);

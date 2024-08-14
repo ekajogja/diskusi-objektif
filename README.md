@@ -12,10 +12,10 @@
 
 - [x] Pandangan Awal flow
 
-- [ ] Sanggahan flow
+- [x] Sanggahan flow
 
-- [ ] Izin Sanggahan flow
+- [x] Izin Sanggahan flow
 
-- [ ] Jawaban flow
+- [x] Jawaban flow
 
 - [ ] User guide 

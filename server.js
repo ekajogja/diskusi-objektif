@@ -83,6 +83,25 @@ app.get('/data/:folderName/:fileName', (req, res) => {
     });
 });
 
+// Route to save Paparan content
+app.post('/save-paparan', (req, res) => {
+    const { content } = req.body;
+
+    if (!content) {
+        return res.status(400).json({ error: 'Content is required' });
+    }
+
+    const filePath = path.join(__dirname, 'data', 'paparan', 'paparan.md');
+
+    fs.writeFile(filePath, content, 'utf8', err => {
+        if (err) {
+            console.error('Error saving Paparan:', err);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+        res.status(200).json({ message: 'Paparan saved successfully' });
+    });
+});
+
 // Route to save Pandangan Awal content
 app.post('/save-pandangan-awal', (req, res) => {
     const { content, userName } = req.body;
@@ -102,24 +121,60 @@ app.post('/save-pandangan-awal', (req, res) => {
     });
 });
 
+// Route to save Sanggahan content
+app.post('/save-sanggahan', (req, res) => {
+    const { content, userName } = req.body;
 
-// Route to save Tashih content
-app.post('/save-tashih', (req, res) => {
-    let body = '';
-    req.on('data', chunk => {
-        body += chunk.toString();
+    if (!userName) {
+        return res.status(400).send('Username is required');
+    }
+
+    const filePath = path.join(__dirname, 'data', 'sanggahan', `sanggahan-${userName}.md`);
+
+    fs.writeFile(filePath, content, 'utf8', err => {
+        if (err) {
+            console.error('Error saving Sanggahan:', err);
+            return res.status(500).send('Internal Server Error');
+        }
+        res.status(200).json({ message: 'Sanggahan saved successfully' });
     });
-    req.on('end', () => {
-        const { content } = JSON.parse(body);
-        const filePath = path.join(__dirname, 'data', 'tashih', 'tashih.md');
+});
 
-        fs.writeFile(filePath, content, 'utf8', err => {
-            if (err) {
-                console.error('Error saving Tashih:', err);
-                return res.status(500).send('Internal Server Error');
-            }
-            res.status(200).json({ message: 'Tashih saved successfully' });
-        });
+// Route to save Izin Sanggahan content
+app.post('/save-izin-sanggahan', (req, res) => {
+    const { content, userName } = req.body;
+
+    if (!userName) {
+        return res.status(400).send('Username is required');
+    }
+
+    const filePath = path.join(__dirname, 'data', 'izin-sanggahan', `izin-sanggahan-${userName}.md`);
+
+    fs.writeFile(filePath, content, 'utf8', err => {
+        if (err) {
+            console.error('Error saving Izin Sanggahan:', err);
+            return res.status(500).send('Internal Server Error');
+        }
+        res.status(200).json({ message: 'Izin Sanggahan saved successfully' });
+    });
+});
+
+// Route to save Jawaban content
+app.post('/save-jawaban', (req, res) => {
+    const { content, userName } = req.body;
+
+    if (!userName) {
+        return res.status(400).send('Username is required');
+    }
+
+    const filePath = path.join(__dirname, 'data', 'jawaban', `jawaban-${userName}.md`);
+
+    fs.writeFile(filePath, content, 'utf8', err => {
+        if (err) {
+            console.error('Error saving Jawaban:', err);
+            return res.status(500).send('Internal Server Error');
+        }
+        res.status(200).json({ message: 'Jawaban saved successfully' });
     });
 });
 
@@ -143,22 +198,23 @@ app.post('/save-rumusan', (req, res) => {
     });
 });
 
-// Route to save Paparan content
-app.post('/save-paparan', (req, res) => {
-    const { content } = req.body;
+// Route to save Tashih content
+app.post('/save-tashih', (req, res) => {
+    let body = '';
+    req.on('data', chunk => {
+        body += chunk.toString();
+    });
+    req.on('end', () => {
+        const { content } = JSON.parse(body);
+        const filePath = path.join(__dirname, 'data', 'tashih', 'tashih.md');
 
-    if (!content) {
-        return res.status(400).json({ error: 'Content is required' });
-    }
-
-    const filePath = path.join(__dirname, 'data', 'paparan', 'paparan.md');
-
-    fs.writeFile(filePath, content, 'utf8', err => {
-        if (err) {
-            console.error('Error saving Paparan:', err);
-            return res.status(500).json({ error: 'Internal Server Error' });
-        }
-        res.status(200).json({ message: 'Paparan saved successfully' });
+        fs.writeFile(filePath, content, 'utf8', err => {
+            if (err) {
+                console.error('Error saving Tashih:', err);
+                return res.status(500).send('Internal Server Error');
+            }
+            res.status(200).json({ message: 'Tashih saved successfully' });
+        });
     });
 });
 
